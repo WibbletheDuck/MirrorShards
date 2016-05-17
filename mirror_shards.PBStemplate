@@ -1,0 +1,22 @@
+#!/bin/bash -l
+# declare a name for this job to be sample_job
+#PBS -N mirror_shard
+
+# request the default queue for this job
+#PBS -q default
+
+#PBS -l nodes=1:ppn=@@PPN@@
+#PBS -l walltime=@@WALL@@:00:00
+#PBS -l feature='@@CELL@@'
+
+# mail is sent to you when the job starts and when it terminates or aborts
+#PBS -m bea
+
+# specify your email address
+#PBS -M micah.p.dombrowski.gr@dartmouth.edu
+
+#change to the directory where you submitted the job
+cd $PBS_O_WORKDIR
+
+# include the relative path to the name of your MPI program
+matlab -nodisplay -r "try; mirror_shards_alice($PBS_ARRAYID,@@PPN@@,'mshards-r@@RUN@@-master.mat'); catch; end; quit" 
