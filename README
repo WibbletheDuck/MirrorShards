@@ -2,9 +2,9 @@ Mirror Shards
 a Magneto-Kinetic Test-Particle Simulation
 
 
-Historically, this code was a single particle code provided by Dr. Wayne Scales.  When moving towards parallelism, it was rewritten to be monolithic, and entirely run via the Matlab Distributed Compute Server (DCS) on GPU nodes.  Then the computation was found to be entirely FLOPS-dependent, and running one or only a few particles on a single fast CPU core to be preferable to GPU massive parallelism.  This requires as many CPU cores as possible, far beyond the artificially limited (due to Mathworks' prohibitive licensing fees) DCS max core number.
+Historically, this code was a single-particle code provided by Dr. Wayne Scales.  When moving towards parallelism, it was rewritten to be monolithic, and entirely run via the Matlab Distributed Compute Server (DCS) on GPU nodes.  Then the computation was found to be entirely FLOPS-dependent, and running one or only a few particles on a single fast CPU core to be preferable to GPU massive parallelism (this may be Matlab's fault, as I've since been told Matlab's GPU stuff is not particularly well optimized).  This requires as many CPU cores as possible, far beyond the artificially limited (due to Mathworks' prohibitive licensing fees) DCS max core number.
 
-So, the decision was made to break the code apart into separate pieces, each of which would run be queued and run as a separate job on a PBS/TORQUE cluster compute system.  The `mirror shard' codes are so-named because they break the mirror simulation particles up among some number of `shards', with each shard assigned a set number of calculation cores.  A given core can work on one or many particles, and one or multiple shards can run on a given node---whatever makes for the best queuing setup.
+So, the decision was made to break the code apart into separate pieces, each of which would be queued and run as a separate job on a PBS/TORQUE cluster compute system.  The `mirror shard' codes are so-named because they break the mirror simulation particles up among some number of `shards', with each shard assigned a set number of calculation cores.  A given core can work on one or many particles, and one or multiple shards can run on a given node---whatever makes for the best queuing setup.
 
 The three primary codes are the distribute code, the Alice code, and the gather code.  Also included are two Python utility scripts, which set things up and finalize the results.
 
@@ -13,9 +13,9 @@ mirror_shards_distribute.m
 
 This code provides a Matlab function, mirror_shards_distribute(n_run, n_shards), which generates the 'test distribution' with a given range of positions, velocities (given in eV), pitch angles, and azimuthal angles, and breaks it up among the specified number of shards.  It splits the distribution up among a set of files of form mshard-r<n_run>-<i>of<n_shards>-input.mat, and also saves all pertinent distribution input parameters in the file mshards-r<n_run>-master.mat.
 
-It does the splitting in an excessively lazy manner, using Matlab's built-in distributed() function over the Distributed Compute Server (DCS).  This requires that a core for each shard, i.e. the maximum number of shards possible is equal to the maximum number of cluster cores available for use with the DCS.
+It does the splitting in an excessively lazy manner, using Matlab's built-in distributed() function over the Distributed Compute Server (DCS).  This requires a core for each shard, i.e. the maximum number of shards possible is equal to the maximum number of cluster cores available for use with the DCS.
 
-This splitting is quite frankly a holdover from the rushed transition from a monolithic design to the sharded design.  With some work this code could be done away with entirely: the inline distribution-building function is very fast, so it could be done within each individual job, based on the input parameters given and the job's ID number.  Then the only remaining function of this code would be to build the 'master' file used to save the input parameters.
+This splitting is quite frankly a terrible holdover from the rushed transition from a monolithic design to the sharded design.  With some work this code could be done away with entirely: the inline distribution-building function is very fast, so it could be done within each individual job, based on the input parameters given and the job's ID number.  Then the only remaining function of this code would be to build the 'master' file used to save the input parameters.
 
 mirror_shards_alice.m
 
